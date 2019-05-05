@@ -44,10 +44,13 @@ def quick_loading():
                 exitting_game()
 
         mouse = pygame.mouse.get_pos()
-
+        clicked = pygame.mouse.get_pressed()
         if(player_berubah):
             #do something when player changed here
-            playerSurface = playerText.render("1/4", False, (0,0,0))          
+            playerSurface = playerText.render("1/4", False, (0,0,0))      
+            sufficient=False
+            if(sufficient):
+                return False ## return that the intro is done     
 
         if(pygame.time.get_ticks()%500==0):
             if(dots==3):
@@ -71,6 +74,8 @@ def quick_loading():
         window.blit(backSurface,(5,0))
         if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
             backSurface = backText.render("back<",False,(61,73,91))
+            if(clicked[0]):
+                game_intro()
         else:
             backSurface = backText.render("back<",False,(0,0,0))
         pygame.display.update()
@@ -83,12 +88,12 @@ def game_intro():
     quickText = pygame.font.Font("assets/Pixel Emulator.otf",20)
     quickSurface = quickText.render("Quick Search", False , (0,0,0))
     quickSurface_x = (display_width/2)-(quickSurface.get_width()/2)
-    quickSurface_y = int(display_height/1.5)
+    quickSurface_y = int(display_height/1.6)
 
     cusRoomtext = pygame.font.Font("assets/Pixel Emulator.otf",19)
     cusRomSurface = cusRoomtext.render("custom room",False, (0,0,0))
     cusRomSurface_x = (display_width/2)-(cusRomSurface.get_width()/2)
-    cusRomSurface_y = int(display_height/1.3) 
+    cusRomSurface_y = int(display_height/1.4) 
 
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")
     dominoPict2 = pygame.transform.scale(dominoPict2,(305,143))
@@ -98,17 +103,19 @@ def game_intro():
             if (event.type==pygame.QUIT):
                 exitting_game()
         window.fill((255,255,255))
-        window.blit(dominoPict2,(display_width/2 - dominoPict2.get_width()/2 ,int(display_height/3.2)))
+        window.blit(dominoPict2,(display_width/2 - dominoPict2.get_width()/2 ,int(display_height/3.5)))
         window.blit(textSurface,((display_width/2)-(textSurface.get_width()/2), int(display_height/6.2) ))
         window.blit(quickSurface,(quickSurface_x, quickSurface_y ))
         window.blit(cusRomSurface,(cusRomSurface_x, cusRomSurface_y))
         # window.blit(dominoPict1,(0,0))
 
         mouse = pygame.mouse.get_pos()
-
+        clicked = pygame.mouse.get_pressed()
         if ( (mouse[0]< quickSurface_x + quickSurface.get_width() and mouse[0] > quickSurface_x) and \
             (mouse[1]>quickSurface_y and (mouse[1]< quickSurface_y+quickSurface.get_height()) )):
             quickSurface = quickText.render("Quick Search", False , (61, 73, 91))
+            if(clicked[0]):
+                intro = quick_loading()
         elif ( (mouse[0]<cusRomSurface_x + cusRomSurface.get_width() and mouse[0] > cusRomSurface_x)  and \
             (mouse[1]>cusRomSurface_y and mouse[1] < cusRomSurface_y + cusRomSurface.get_height() )):
             cusRomSurface = cusRoomtext.render("Custom Room", False, (61, 73, 91))
@@ -118,7 +125,7 @@ def game_intro():
         pygame.display.update()
 
 
-quick_loading()
+game_intro()
                 
 
 while not exit:

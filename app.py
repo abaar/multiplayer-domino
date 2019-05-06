@@ -15,6 +15,9 @@ def exitting_game():
     pygame.quit()
     quit()
 
+def join_room():
+    print("haha")
+
 def quick_loading():
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")
     dominoPict2 = pygame.transform.scale(dominoPict2,(305,143))
@@ -95,6 +98,10 @@ def game_intro():
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")
     dominoPict2 = pygame.transform.scale(dominoPict2,(305,143))
 
+    joinRom = pygame.font.Font("assets/Pixel Emulator.otf",19)
+    joinRomSurface = joinRom.render("Join A room",False,(0,0,0))
+    joinRomSurface_x = (display_width/2) - (joinRomSurface.get_width()/2)
+    joinRomSurface_y = int(display_height/1.25)
     while not intro:
         for event in pygame.event.get():
             if (event.type==pygame.QUIT):
@@ -104,7 +111,7 @@ def game_intro():
         window.blit(textSurface,((display_width/2)-(textSurface.get_width()/2), int(display_height/6.2) ))
         window.blit(quickSurface,(quickSurface_x, quickSurface_y ))
         window.blit(cusRomSurface,(cusRomSurface_x, cusRomSurface_y))
-        # window.blit(dominoPict1,(0,0))
+        window.blit(joinRomSurface,(joinRomSurface_x,int(display_height/1.25)))
 
         mouse = pygame.mouse.get_pos()
         clicked = pygame.mouse.get_pressed()
@@ -118,7 +125,13 @@ def game_intro():
             cusRomSurface = cusRoomtext.render("Custom Room", False, (61, 73, 91))
             if(clicked[0]):
                 intro = custom_room()
+        elif ( mouse[0]<joinRomSurface_x + joinRomSurface.get_width() and mouse[0]>joinRomSurface_x and \
+            mouse[1]<joinRomSurface_y+joinRomSurface.get_height() and mouse[1]>joinRomSurface_y):
+            joinRomSurface = joinRom.render("Join a Room",False,(61,83,91))
+            if(clicked[0]):
+                intro = join_room()
         else:
+            joinRomSurface = joinRom.render("Join a Room",False,(0,0,0))
             quickSurface = quickText.render("Quick Search", False , (0, 0, 0))
             cusRomSurface = cusRoomtext.render("Custom Room", False, (0, 0, 0))
         pygame.display.update()
@@ -128,6 +141,9 @@ def custom_room():
     lobi = False
     backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
     backSurface = backText.render("back<",False,(0,0,0))
+
+    idText = pygame.font.Font("assets/Pixel Emulator.otf",25)
+    idSurface = idText.render("Room ID : 12345",False,(0,0,0))
 
     startText = pygame.font.Font("assets/Pixel Emulator.otf",25)
     startSurface = startText.render("Start",False,(0,0,0))
@@ -162,6 +178,7 @@ def custom_room():
         window.blit(player1ready,(118,250))
         window.blit(p4Img,(118,155))
 
+        window.blit(idSurface,(display_width/2-idSurface.get_width()/2,80))
         window.blit(player2Surface,(252,125))
         pygame.draw.rect(window,(0,0,0),(260,150,80,100),3)
 

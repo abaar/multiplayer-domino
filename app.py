@@ -15,9 +15,6 @@ def exitting_game():
     pygame.quit()
     quit()
 
-def text_objects(what,obj):
-    textImage = font.render(text, False, colours.BLACK)
-
 def quick_loading():
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")
     dominoPict2 = pygame.transform.scale(dominoPict2,(305,143))
@@ -119,13 +116,62 @@ def game_intro():
         elif ( (mouse[0]<cusRomSurface_x + cusRomSurface.get_width() and mouse[0] > cusRomSurface_x)  and \
             (mouse[1]>cusRomSurface_y and mouse[1] < cusRomSurface_y + cusRomSurface.get_height() )):
             cusRomSurface = cusRoomtext.render("Custom Room", False, (61, 73, 91))
+            if(clicked[0]):
+                intro = custom_room()
         else:
             quickSurface = quickText.render("Quick Search", False , (0, 0, 0))
             cusRomSurface = cusRoomtext.render("Custom Room", False, (0, 0, 0))
         pygame.display.update()
 
 
-game_intro()
+def custom_room():
+    lobi = False
+    backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
+    backSurface = backText.render("back<",False,(0,0,0))
+
+    you1 = pygame.font.Font("assets/Pixel Emulator.otf",20)
+    youSurface = you1.render("You",False,(0,0,0))
+    p1Img = pygame.image.load("assets/player1.jpg")
+    
+    player2Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+    player2Surface = player2Text.render("Player 2",False,(0,0,0))
+
+    player1Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+    player1Surface = player1Text.render("Player 1",False,(0,0,0))
+
+    player3Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+    player3Surface = player3Text.render("Player 3",False,(0,0,0))
+    while not lobi:
+        for event in pygame.event.get():
+            if(event.type==pygame.QUIT):
+                exitting_game()
+        window.fill((255,255,255))
+        window.blit(backSurface,(5,0))
+        window.blit(player1Surface,(102,125))
+        rect1 = pygame.draw.rect(window,(0,0,0),(110,150,80,100),3)
+        window.blit(p1Img,(268,355))
+
+        window.blit(player2Surface,(252,125))
+        pygame.draw.rect(window,(0,0,0),(260,150,80,100),3)
+
+        pygame.draw.rect(window,(0,0,0),(410,150,80,100),3)
+
+        window.blit(youSurface,(277,325))
+        pygame.draw.rect(window,(0,0,0),(260,350,80,100),3)
+
+        mouse = pygame.mouse.get_pos()
+        clicked = pygame.mouse.get_pressed()
+        if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+            backSurface = backText.render("back<",False,(61,73,91))
+            if(clicked[0]):
+                game_intro()
+        else:
+            backSurface = backText.render("back<",False,(0,0,0))
+        pygame.display.update()       
+    
+custom_room()
+
+# game_intro()
                 
 
 while not exit:

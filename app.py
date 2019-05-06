@@ -129,35 +129,51 @@ def custom_room():
     backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
     backSurface = backText.render("back<",False,(0,0,0))
 
+    startText = pygame.font.Font("assets/Pixel Emulator.otf",25)
+    startSurface = startText.render("Start",False,(0,0,0))
+
     you1 = pygame.font.Font("assets/Pixel Emulator.otf",20)
     youSurface = you1.render("You",False,(0,0,0))
     p1Img = pygame.image.load("assets/player1.jpg")
     
     player2Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
     player2Surface = player2Text.render("Player 2",False,(0,0,0))
+    player2ready = player2Text.render("Ready",False,(0,0,0))
+    p2Img = pygame.image.load("assets/player2.jpg")
 
     player1Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
     player1Surface = player1Text.render("Player 1",False,(0,0,0))
+    player1ready = player1Text.render("Ready",False,(0,0,0))
+    p4Img = pygame.image.load("assets/player4.jpg")
 
     player3Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
     player3Surface = player3Text.render("Player 3",False,(0,0,0))
+    player3ready = player3Text.render("Ready",False,(0,0,0))
+    p3Img = pygame.image.load("assets/player3.jpg")
     while not lobi:
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
                 exitting_game()
         window.fill((255,255,255))
         window.blit(backSurface,(5,0))
+
         window.blit(player1Surface,(102,125))
-        rect1 = pygame.draw.rect(window,(0,0,0),(110,150,80,100),3)
-        window.blit(p1Img,(268,355))
+        pygame.draw.rect(window,(0,0,0),(110,150,80,100),3)
+        window.blit(player1ready,(118,250))
+        window.blit(p4Img,(118,155))
 
         window.blit(player2Surface,(252,125))
         pygame.draw.rect(window,(0,0,0),(260,150,80,100),3)
 
+        window.blit(player3Surface,(402,125))
         pygame.draw.rect(window,(0,0,0),(410,150,80,100),3)
+        window.blit(player3ready,(418,250))
+        window.blit(p3Img,(418,155))
 
+        window.blit(p1Img,(268,355))
         window.blit(youSurface,(277,325))
         pygame.draw.rect(window,(0,0,0),(260,350,80,100),3)
+        window.blit(startSurface,(258,455))
 
         mouse = pygame.mouse.get_pos()
         clicked = pygame.mouse.get_pressed()
@@ -165,7 +181,10 @@ def custom_room():
             backSurface = backText.render("back<",False,(61,73,91))
             if(clicked[0]):
                 game_intro()
+        elif(mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
+            startSurface = startText.render("Start",False,(61,73,91))
         else:
+            startSurface = startText.render("Start",False,(0,0,0))
             backSurface = backText.render("back<",False,(0,0,0))
         pygame.display.update()       
     

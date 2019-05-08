@@ -17,12 +17,11 @@ server.bind((ip_address,port))
 server.listen(10)
 
 list_of_clients=[]
-list_of_rooms=[]
+# list_of_rooms=[]
 def broadcast(message, room, conn ):
     for clients in room.get_all_players():
         if(clients!=conn):
             try:
-                print(str(clients))
                 clients.send(message)
             except:
                 clients.close()
@@ -37,7 +36,13 @@ def clienthread(room,conn):
     while True:
         try:
             message = conn.recv(4096)
-            broadcast(message,room,conn)
+            message = pickle.loads(message)
+            message_to_send = {}
+            message_to_send["sender"] = message["sender"]
+            message_to_send["body"] = "<" + message["sender"]+ "> : "+ message["body"].strip() 
+            message_to_send["type"] = "msg"
+            message_to_send = pickle.dumps(message_to_send)
+            broadcast(message_to_send,room,conn)
         except:
             continue
 
@@ -49,12 +54,13 @@ while True:
     list_of_clients.append(conn)
     print(addr[0]+" connected")
     message = {}
+    message["sender"] = "admin"
     message["type"] = "msg"
-    message["cache"] = str(room_number)
+    message["player_name"] = "Player "+ str(room.get_current_player_number())
     message["body"] = "Welcome to Room "+ str(room_number)
     conn.send(pickle.dumps(message))
-    if(not room_number in list_of_rooms):
-        list_of_rooms.append(room_number)
+    # if(not room_number in list_of_rooms):
+    #     list_of_rooms.append(room_number)
     t=threading.Thread(target=clienthread,args=(room,conn))
     t.start()
 

@@ -35,10 +35,13 @@ class Room:
     def get_all_players(self):
         return self.players
 
+    def get_current_player_number(self):
+        return len(self.players)
+        
     def get_is_full(self):
         return self.is_full
 
-    def removePlayer(conn):
+    def removePlayer(self,conn):
         self.players.remove(conn)
         if(len(self.players)<4):
             self.is_full=False

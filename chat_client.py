@@ -29,10 +29,13 @@ class ClientChat:
                     # message=message.strip()
                     # print(message)
                 else:
-                    message = sys.stdin.readline()
-                    self.socket.send(message)
+                    inputs = sys.stdin.readline()
+                    message = {}
+                    message["type"] = "msg"
+                    message["body"] = inputs
+                    self.socket.send(pickle.dumps(message))
                     sys.stdout.write("<You> :")
-                    sys.stdout.write(message)
+                    sys.stdout.write(inputs)
                     sys.stdout.flush()
             for socks in write_socket:
                 if socks == self.socket:

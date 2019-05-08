@@ -3,22 +3,23 @@ class RoomService:
         self.rooms = []
     
     def add_room(self,room):
-        self.rooms = room
+        self.rooms.append(room)
 
     def get_available_room(self):
         is_found = False
         selected_room = None
         selected_room_number = 1
-        for room in self.rooms:
-            is_found = not(room.get_is_full())
-            if(is_found):
-                selected_room = room
-                break
-            selected_room_number += 1
-        if(is_found == False):
-            room = Room()
-            selected_room = room
-            self.rooms.append(selected_room)
+        if(len(self.rooms)):
+            for room in self.rooms:
+                is_found = not(room.get_is_full())
+                if(is_found):
+                    selected_room = room
+                    return (selected_room_number,selected_room)
+                selected_room_number += 1
+        
+        room = Room()
+        selected_room = room
+        self.rooms.append(selected_room)
         return (selected_room_number,selected_room)
 
 class Room:
@@ -36,3 +37,8 @@ class Room:
 
     def get_is_full(self):
         return self.is_full
+
+    def removePlayer(conn):
+        self.players.remove(conn)
+        if(len(self.players)<4):
+            self.is_full=False

@@ -17,42 +17,45 @@ server.bind((ip_address,port))
 server.listen(10)
 
 list_of_clients=[]
-def broadcast(message, conn ):
-    for clients in list_of_clients:
+list_of_rooms=[]
+def broadcast(message, room, conn ):
+    for clients in room.get_all_players():
         if(clients!=conn):
             try:
+                print(str(clients))
                 clients.send(message)
             except:
                 clients.close()
                 remove(clients)
+                room.removePlayers(conn)
 
 def remove(connection):
     if connection in list_of_clients:
         list_of_clients.remove(connection)
 
-def clienthread(conn,addr):
+def clienthread(room,conn):
     while True:
         try:
             message = conn.recv(4096)
-            message = message.decode('utf-8')
-            print("<" + str(addr[1]) +"> "+message.strip())
-            message_to_send = "<" + str(addr[1]) +"> " + message
-            broadcast(message_to_send, conn)            
+            broadcast(message,room,conn)
         except:
             continue
+
 chat_service = chat.RoomService()
 while True:
     conn,addr = server.accept()
     room_number ,room = chat_service.get_available_room()
-    room.add_player((conn,addr))
-    # list_of_clients.append(conn)
+    room.add_player(conn)
+    list_of_clients.append(conn)
     print(addr[0]+" connected")
     message = {}
     message["type"] = "msg"
     message["cache"] = str(room_number)
     message["body"] = "Welcome to Room "+ str(room_number)
     conn.send(pickle.dumps(message))
-    t=threading.Thread(target=clienthread,args=(conn,addr,))
+    if(not room_number in list_of_rooms):
+        list_of_rooms.append(room_number)
+    t=threading.Thread(target=clienthread,args=(room,conn))
     t.start()
 
 conn.close()

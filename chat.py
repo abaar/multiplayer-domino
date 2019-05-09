@@ -5,6 +5,29 @@ class RoomService:
     def add_room(self,room):
         self.rooms.append(room)
 
+    def join_quick_room(self,conn):
+        room = self.get_available_room()
+        room.add_player(conn)
+        return room
+
+    def create_custom_room(self,conn,room_number):
+        room_found = self.search_room(room_number)
+        if (room_found == None):
+            room_found = Room(room_number)
+            self.rooms.append(room_found)
+            room_found.add_player(conn)
+            return room_found
+        else:
+            return None
+
+    def search_room(self, room_number):
+        found_room = None
+        for room in self.rooms:
+            if (room.get_room_number() == room_number):
+                found_room = room
+                break
+        return found_room
+
     def get_available_room(self):
         is_found = False
         selected_room = None
@@ -16,19 +39,22 @@ class RoomService:
                     selected_room = room
                     return (selected_room_number,selected_room)
                 selected_room_number += 1
-        
-        room = Room()
+        room = Room(selected_room_number)
         selected_room = room
         self.rooms.append(selected_room)
-        return (selected_room_number,selected_room)
+        return selected_room
 
 class Room:
-    def __init__(self):
+    def __init__(self, number):
+        self.number = number
         self.players = []
         self.is_full = False
     
-    def add_player(self, address_tuple):
-        self.players.append(address_tuple)
+    def get_room_number(self):
+        return self.number
+
+    def add_player(self, conn):
+        self.players.append(conn)
         if(len(self.players) >= 4):
             self.is_full = True
     

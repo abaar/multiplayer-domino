@@ -25,9 +25,9 @@ class ClientChat:
                 if socks == self.socket:
                     message = socks.recv(4096)
                     message = pickle.loads(message)
-                    if message["sender"] == "admin":
+                    if message["sender"] == "admin" and message.get("player_name",False) != False:
                         self.player_name = message["player_name"]
-                    print("\n"+message["body"])
+                    print("<"+ message["sender"]+"> : "+message["body"].strip())
                 else:
                     inputs = sys.stdin.readline()
                     message = {}
@@ -37,6 +37,7 @@ class ClientChat:
                     self.socket.send(pickle.dumps(message))
                     sys.stdout.write("<You> :")
                     sys.stdout.write(inputs.strip())
+                    sys.stdout.write("\n")
                     sys.stdout.flush()
             for socks in write_socket:
                 if socks == self.socket:

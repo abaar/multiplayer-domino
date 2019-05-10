@@ -51,7 +51,6 @@ def clienthread(addr,conn):
             message_to_send = {}
             message_to_send["sender"] = message["sender"]
             message_to_send["body"] = message["body"].strip() 
-            message_to_send["type"] = "msg"
             if message["body"].strip().lower() == "quick_room":
                 message_to_send["sender"] = "admin"
                 room = room_service.join_quick_room(conn)
@@ -82,7 +81,6 @@ while True:
     print(addr[0]+" connected")
     message = {}
     message["sender"] = "admin"
-    message["type"] = "msg"
     player_name = "Player"+ str(random.randint(100000,999999))
     message["player_name"] = player_name
     message["body"] = "\n quick_room = to join random room \n create_custom_room <int> = to create custom room \nWelcome "+player_name

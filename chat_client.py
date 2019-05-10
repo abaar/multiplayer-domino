@@ -14,6 +14,7 @@ class ClientChat:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(server_address)
         self.player_name = None
+        self.room_number = None
 
     def run(self):
         while True:
@@ -27,6 +28,8 @@ class ClientChat:
                     message = pickle.loads(message)
                     if message["sender"] == "admin" and message.get("player_name",False) != False:
                         self.player_name = message["player_name"]
+                    if message["sender"] == "admin" and message.get("room_number",False) != False:
+                        self.room_number = message["room_number"]
                     print("<"+ message["sender"]+"> : "+message["body"].strip())
                 else:
                     inputs = sys.stdin.readline()
@@ -34,6 +37,7 @@ class ClientChat:
                     message["sender"] = self.player_name
                     message["type"] = "msg"
                     message["body"] = inputs
+                    message["room_number"] = self.room_number
                     self.socket.send(pickle.dumps(message))
                     sys.stdout.write("<You> :")
                     sys.stdout.write(inputs.strip())

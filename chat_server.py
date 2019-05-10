@@ -17,17 +17,8 @@ port = 5000
 
 server.bind((ip_address,port))
 server.listen(10)
-
+room_service = chat.RoomService()
 list_of_clients=[]
-def broadcast_room(message,room, conn ):
-    for clients in room.get_all_players():
-        if(clients!=conn):
-            try:
-                clients.send(message)
-            except:
-                clients.close()
-                remove(clients)
-                room.removePlayers(conn)
 
 def broadcast(message, conn):
     for client in list_of_clients:
@@ -42,6 +33,12 @@ def remove(connection):
     if connection in list_of_clients:
         list_of_clients.remove(connection)
 
+def broadcast_room(message,conn,room_number):
+    room = room_service.search_room(room_number)
+    for client in room.get_all_players():
+        if client != conn:
+            client.send(message)
+
 def clienthread(addr,conn):
     while True:
         try:
@@ -50,12 +47,19 @@ def clienthread(addr,conn):
             # print(message)
             message_to_send = {}
             message_to_send["sender"] = message["sender"]
-            message_to_send["body"] = message["body"].strip() 
+            message_to_send["body"] = message["body"].strip()
+            if message.get("room_number",None) != None:
+                print("debug")
+                message_to_send = pickle.dumps(message_to_send) 
+                broadcast_room(message_to_send,conn,message["room_number"])
+                continue    
             if message["body"].strip().lower() == "quick_room":
                 message_to_send["sender"] = "admin"
                 room = room_service.join_quick_room(conn)
                 message_to_send["body"] = "Welcome to Room Number "+str(room.get_room_number())
+                message_to_send["room_number"] = room.get_room_number()
                 message_to_send = pickle.dumps(message_to_send)
+                list_of_clients.remove(conn)
                 conn.send(message_to_send)
                 continue
             elif message["body"].strip().split()[0].lower() == "create_custom_room":
@@ -66,6 +70,8 @@ def clienthread(addr,conn):
                     message_to_send["body"] = "Sorry, Currently Room Number "+str(room_number)+" is Available"
                 else:
                     message_to_send["body"] = "Welcome to Room Number "+str(room_number)
+                    message_to_send["room_number"] = room_number
+                    list_of_clients.remove(conn)
                 message_to_send = pickle.dumps(message_to_send)
                 conn.send(message_to_send)     
                 continue
@@ -74,7 +80,7 @@ def clienthread(addr,conn):
         except:
             continue
 
-room_service = chat.RoomService()
+
 while True:
     conn,addr = server.accept()
     list_of_clients.append(conn)

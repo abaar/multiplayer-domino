@@ -37,7 +37,7 @@ class RoomService:
                 is_found = not(room.get_is_full())
                 if(is_found):
                     selected_room = room
-                    return (selected_room_number,selected_room)
+                    return selected_room
                 selected_room_number += 1
         room = Room(selected_room_number)
         selected_room = room
@@ -67,7 +67,7 @@ class Room:
     def get_is_full(self):
         return self.is_full
 
-    def removePlayer(self,conn):
+    def remove_player(self,conn):
         self.players.remove(conn)
         if(len(self.players)<4):
             self.is_full=False

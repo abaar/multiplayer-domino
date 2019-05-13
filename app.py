@@ -15,8 +15,52 @@ def exitting_game():
     pygame.quit()
     quit()
 
+def game_start():
+    print("halo")
+
 def join_room():
-    print("haha")
+    jroom = False
+    backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
+    backSurface = backText.render("back<",False,(0,0,0))
+
+    joinSurface = backText.render("Join",False,(0,0,0))
+    joinSurface_x = display_width/2-joinSurface.get_width()/2
+    joinSurface_y = display_height/2 - joinSurface.get_height()/2 + 50
+    textText = pygame.font.Font("assets/Pixel Emulator.otf",55)
+    text = ""
+    text_len = len(text)
+    numerics = ["1","2","3","4","5","6","7","8","9","0"]
+    while not jroom:
+        for event in pygame.event.get():
+            if(event.type==pygame.QUIT):
+                exitting_game()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    text = text[:-1]
+                elif(text_len<4 and event.unicode in numerics):
+                    text += event.unicode
+                    text_len = len(text)
+        textSurface = textText.render(text,False,(0,0,0))            
+        mouse = pygame.mouse.get_pos()
+        clicked = pygame.mouse.get_pressed()
+        window.fill((255,255,255)) 
+        pygame.draw.rect(window,(0,0,0),(200,210,200,80),3)
+        window.blit(textSurface,(215,215))
+        window.blit(joinSurface,(joinSurface_x,joinSurface_y))
+
+        if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+            backSurface = backText.render("back<",False,(61,73,91))
+            if(clicked[0]):
+                game_intro()
+        elif(mouse[0]>joinSurface_x and mouse[0]<joinSurface_x+joinSurface.get_width() and mouse[1]>joinSurface_y and mouse[1]<joinSurface_y+joinSurface.get_height()):
+            joinSurface = backText.render("Join",False,(61,73,91))
+            if(clicked[0]):
+                game_start()
+        else:
+            joinSurface = backText.render("Join",False,(0,0,0))
+            backSurface = backText.render("back<",False,(0,0,0))
+        window.blit(backSurface,(5,0))
+        pygame.display.update()           
 
 def quick_loading():
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")

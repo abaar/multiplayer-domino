@@ -205,9 +205,9 @@ def custom_room():
             backSurface = backText.render("back<",False,(0,0,0))
         pygame.display.update()       
     
-custom_room()
+# custom_room()
 
-# game_intro()
+game_intro()
                 
 
 while not exit:

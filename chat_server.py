@@ -67,7 +67,7 @@ def clienthread(addr,conn):
                 room_number = int(message["body"].strip().split()[1])
                 room = room_service.create_custom_room(conn,room_number)
                 if room == None:
-                    message_to_send["body"] = "Sorry, Currently Room Number "+str(room_number)+" is Available"
+                    message_to_send["body"] = "Sorry, Currently Room Number "+str(room_number)+" is Already Exist"
                 else:
                     message_to_send["body"] = "Welcome to Room Number "+str(room_number)
                     message_to_send["room_number"] = room_number

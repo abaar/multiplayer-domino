@@ -37,6 +37,7 @@ def join_room():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
                     text = text[:-1]
+                    text_len = len(text)
                 elif(text_len<4 and event.unicode in numerics):
                     text += event.unicode
                     text_len = len(text)

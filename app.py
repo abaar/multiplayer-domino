@@ -1,4 +1,8 @@
 import pygame
+import pickle
+import socket
+import threading
+import Queue
 
 pygame.init()
 
@@ -10,9 +14,37 @@ window.fill((255,255,255))
 clock = pygame.time.Clock()
 exit = False
 
+event_listened = Queue.Queue()
+ipAddress = '127.0.0.1'
+port = 5000
+address = (ipAddress,port)
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+player_name = None
+room_number = None
+mythread = None
+
+def chat_event_listener(useless,conn):
+     while True:
+        try:
+            message = conn.recv(4096)
+            message = pickle.loads(message)
+            event_listened.put(message)   
+        except:
+            continue
+
+def make_message(message_type,message_body):
+    message = {}
+    message["sender"] = player_name
+    message["type"] = message_type
+    message["body"] = message_body
+    message["room_number"] = room_number
+    return pickle.dumps(message)
+
 def exitting_game():
     print("do something here, e.g closing connection")
+    socket.close()
     pygame.quit()
+    mythread.exit()
     quit()
 
 def game_start():
@@ -84,6 +116,8 @@ def quick_loading():
     player_berubah = 0
     
     while not qload:
+        if(not event_listened.empty()):
+            message = event_listened.get()
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
                 exitting_game()
@@ -148,6 +182,12 @@ def game_intro():
     joinRomSurface_x = (display_width/2) - (joinRomSurface.get_width()/2)
     joinRomSurface_y = int(display_height/1.25)
     while not intro:
+        if(not event_listened.empty()):
+            message = event_listened.get()
+            if(message['body']=="quick_room"):
+                print(message['room_number'])
+                quick_loading()
+
         for event in pygame.event.get():
             if (event.type==pygame.QUIT):
                 exitting_game()
@@ -164,7 +204,9 @@ def game_intro():
             (mouse[1]>quickSurface_y and (mouse[1]< quickSurface_y+quickSurface.get_height()) )):
             quickSurface = quickText.render("Quick Search", False , (61, 73, 91))
             if(clicked[0]):
-                intro = quick_loading()
+                message=make_message("cmd","quick_room")
+                socket.send(message)
+                print("request quick_room")
         elif ( (mouse[0]<cusRomSurface_x + cusRomSurface.get_width() and mouse[0] > cusRomSurface_x)  and \
             (mouse[1]>cusRomSurface_y and mouse[1] < cusRomSurface_y + cusRomSurface.get_height() )):
             cusRomSurface = cusRoomtext.render("Custom Room", False, (61, 73, 91))
@@ -252,4 +294,12 @@ def custom_room():
     
                 
 if __name__ == '__main__':
+    socket.connect(address)
+    message = socket.recv(4096)
+    message = pickle.loads(message)
+    if message["sender"] == "admin" and message.get("player_name",False) != False:
+        player_name = message["player_name"]  
+    mythread=threading.Thread(target=chat_event_listener,args=(address,socket))
+    mythread.start()  
+
     game_intro()

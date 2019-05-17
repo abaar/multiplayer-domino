@@ -56,7 +56,7 @@ def clienthread(addr,conn):
             if message["body"].strip().lower() == "quick_room":
                 message_to_send["sender"] = "admin"
                 room = room_service.join_quick_room(conn)
-                message_to_send["body"] = "Welcome to Room Number "+str(room.get_room_number())
+                message_to_send["body"] = "quick_room"
                 message_to_send["room_number"] = room.get_room_number()
                 message_to_send = pickle.dumps(message_to_send)
                 list_of_clients.remove(conn)

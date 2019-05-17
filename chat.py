@@ -43,6 +43,16 @@ class RoomService:
         selected_room = room
         self.rooms.append(selected_room)
         return selected_room
+    
+    def join_room(self,conn,room_number):
+        room = self.search_room(room_number)
+        if room == None:
+            return None
+        roomIsFull = room.get_is_full()
+        if roomIsFull:
+            return None
+        room.add_player(conn)
+        return room
 
 class Room:
     def __init__(self, number):

@@ -249,16 +249,6 @@ def custom_room():
             backSurface = backText.render("back<",False,(0,0,0))
         pygame.display.update()       
     
-# custom_room()
-
-game_intro()
                 
-
-while not exit:
-    for event in pygame.event.get():
-        if (event.type == pygame.QUIT):
-            exit=True
-    pygame.display.update()
-    clock.tick(30)
-
-exitting_game()
+if __name__ == '__main__':
+    game_intro()

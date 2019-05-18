@@ -10,15 +10,11 @@ class RoomService:
         room.add_player(conn)
         return room
 
-    def create_custom_room(self,conn,room_number):
-        room_found = self.search_room(room_number)
-        if (room_found == None):
-            room_found = Room(room_number)
-            self.rooms.append(room_found)
-            room_found.add_player(conn)
-            return room_found
-        else:
-            return None
+    def create_custom_room(self,conn):
+        rom = Room(len(self.rooms))
+        self.rooms.append(rom)
+        rom.add_player(conn)
+        return rom
 
     def search_room(self, room_number):
         found_room = None
@@ -63,8 +59,6 @@ class RoomService:
     def quit_room(self,conn,room_number):
         room = self.search_room(room_number)
         room.remove_player(conn)
-        if(room.get_current_player_number() == 0):
-            self.rooms.remove(room)
 
 class Room:
     def __init__(self, number):

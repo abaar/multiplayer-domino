@@ -20,11 +20,11 @@ port = 5000
 address = (ipAddress,port)
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 player_name = None
-room_number = None
 mythread = None
+stoptread = False
 
 def chat_event_listener(useless,conn):
-     while True:
+     while not stoptread:
         try:
             message = conn.recv(4096)
             message = pickle.loads(message)
@@ -32,19 +32,19 @@ def chat_event_listener(useless,conn):
         except:
             continue
 
-def make_message(message_type,message_body):
+def make_message(message_type,message_body,room_num=None):
     message = {}
     message["sender"] = player_name
     message["type"] = message_type
     message["body"] = message_body
-    message["room_number"] = room_number
+    message["room_number"] = room_num
     return pickle.dumps(message)
 
-def exitting_game():
+def exitting_game(current_room_number=None):
     print("do something here, e.g closing connection")
-    socket.close()
+    socket.send(make_message("exit","exit",room_num=current_room_number))
     pygame.quit()
-    mythread.exit()
+    stoptread=True
     quit()
 
 def game_start():
@@ -95,7 +95,7 @@ def join_room():
         window.blit(backSurface,(5,0))
         pygame.display.update()           
 
-def quick_loading():
+def quick_loading(current_total_players=None,room_number=None):
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")
     dominoPict2 = pygame.transform.scale(dominoPict2,(305,143))
 
@@ -110,27 +110,27 @@ def quick_loading():
     backSurface = backText.render("back<",False,(0,0,0))
 
     playerText = pygame.font.Font("assets/Pixel Emulator.otf",20)
-    playerSurface = playerText.render("2/4", False, (0,0,0))
+    playerSurface = playerText.render(current_total_players+"/4", False, (0,0,0))
     playerSurface_x = (display_width/2) - (playerSurface.get_width()/2)
-    
-    player_berubah = 0
-    
+
     while not qload:
         if(not event_listened.empty()):
             message = event_listened.get()
+            if(message['response']=="qroom_update_players"):
+                current_total_players=message['body']
+                playerSurface = playerText.render(current_total_players+"/4", False, (0,0,0))     
+            elif(message['response']=="quit_succeed"):
+                game_intro()
+            elif(message['response']=="game_ready"):
+                print("letsplay")                     
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
-                exitting_game()
-
+                exitting_game(current_room_number=room_number)
+            elif(event.type==pygame.MOUSEBUTTONUP and event.button==1):
+                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+                    message=make_message("cmd","quit",room_num=room_number)
+                    socket.send(message)
         mouse = pygame.mouse.get_pos()
-        clicked = pygame.mouse.get_pressed()
-        if(player_berubah):
-            #do something when player changed here
-            playerSurface = playerText.render("1/4", False, (0,0,0))      
-            sufficient=False
-            if(sufficient):
-                return False ## return that the intro is done     
-
         if(pygame.time.get_ticks()%500==0):
             if(dots==3):
                 dots=0
@@ -153,8 +153,6 @@ def quick_loading():
         window.blit(backSurface,(5,0))
         if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
             backSurface = backText.render("back<",False,(61,73,91))
-            if(clicked[0]):
-                game_intro()
         else:
             backSurface = backText.render("back<",False,(0,0,0))
         pygame.display.update()
@@ -184,13 +182,24 @@ def game_intro():
     while not intro:
         if(not event_listened.empty()):
             message = event_listened.get()
-            if(message['body']=="quick_room"):
-                print(message['room_number'])
-                quick_loading()
+            if(message['response']=="quick_room_joined"):
+                quick_loading(current_total_players=str(message['body']),room_number=message['room_number'])
 
         for event in pygame.event.get():
             if (event.type==pygame.QUIT):
                 exitting_game()
+            elif(event.type==pygame.MOUSEBUTTONUP and event.button == 1):
+                if ( (mouse[0]< quickSurface_x + quickSurface.get_width() and mouse[0] > quickSurface_x) and \
+                    (mouse[1]>quickSurface_y and (mouse[1]< quickSurface_y+quickSurface.get_height()) )):
+                    message=make_message("cmd","quick_room")
+                    socket.send(message)
+                elif ( (mouse[0]<cusRomSurface_x + cusRomSurface.get_width() and mouse[0] > cusRomSurface_x)  and \
+                    (mouse[1]>cusRomSurface_y and mouse[1] < cusRomSurface_y + cusRomSurface.get_height() )):
+                    intro = custom_room()
+                elif ( mouse[0]<joinRomSurface_x + joinRomSurface.get_width() and mouse[0]>joinRomSurface_x and \
+                    mouse[1]<joinRomSurface_y+joinRomSurface.get_height() and mouse[1]>joinRomSurface_y):
+                    intro = join_room()
+
         window.fill((255,255,255))
         window.blit(dominoPict2,(display_width/2 - dominoPict2.get_width()/2 ,int(display_height/3.5)))
         window.blit(textSurface,((display_width/2)-(textSurface.get_width()/2), int(display_height/6.2) ))
@@ -203,20 +212,12 @@ def game_intro():
         if ( (mouse[0]< quickSurface_x + quickSurface.get_width() and mouse[0] > quickSurface_x) and \
             (mouse[1]>quickSurface_y and (mouse[1]< quickSurface_y+quickSurface.get_height()) )):
             quickSurface = quickText.render("Quick Search", False , (61, 73, 91))
-            if(clicked[0]):
-                message=make_message("cmd","quick_room")
-                socket.send(message)
-                print("request quick_room")
         elif ( (mouse[0]<cusRomSurface_x + cusRomSurface.get_width() and mouse[0] > cusRomSurface_x)  and \
             (mouse[1]>cusRomSurface_y and mouse[1] < cusRomSurface_y + cusRomSurface.get_height() )):
             cusRomSurface = cusRoomtext.render("Custom Room", False, (61, 73, 91))
-            if(clicked[0]):
-                intro = custom_room()
         elif ( mouse[0]<joinRomSurface_x + joinRomSurface.get_width() and mouse[0]>joinRomSurface_x and \
             mouse[1]<joinRomSurface_y+joinRomSurface.get_height() and mouse[1]>joinRomSurface_y):
             joinRomSurface = joinRom.render("Join a Room",False,(61,83,91))
-            if(clicked[0]):
-                intro = join_room()
         else:
             joinRomSurface = joinRom.render("Join a Room",False,(0,0,0))
             quickSurface = quickText.render("Quick Search", False , (0, 0, 0))

@@ -54,6 +54,18 @@ class RoomService:
         room.add_player(conn)
         return room
 
+
+    def get_all_player_by_room_number(self,room_number):
+        room = self.search_room(room_number)
+        players = room.get_all_players()
+        return players
+
+    def quit_room(self,conn,room_number):
+        room = self.search_room(room_number)
+        room.remove_player(conn)
+        if(room.get_current_player_number() == 0):
+            self.rooms.remove(room)
+
 class Room:
     def __init__(self, number):
         self.number = number

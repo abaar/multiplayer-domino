@@ -26,10 +26,15 @@ class ClientChat:
                 if socks == self.socket:
                     message = socks.recv(4096)
                     message = pickle.loads(message)
+                    print(message)
                     if message["sender"] == "admin" and message.get("player_name",False) != False:
                         self.player_name = message["player_name"]
                     if message["sender"] == "admin" and message.get("room_number",False) != False:
-                        self.room_number = message["room_number"]
+                        print("Change room Number")
+                        if message["room_number"] == "None" :
+                            self.room_number = None
+                        else:
+                            self.room_number = message["room_number"]
                     print("<"+ message["sender"]+"> : "+message["body"].strip())
                 else:
                     inputs = sys.stdin.readline()

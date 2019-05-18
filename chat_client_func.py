@@ -11,17 +11,25 @@ class ClientChat:
         self.socket.connect(server_address)
         self.player_name = None
         self.room_number = None
-        self.socket.recv(2048)
+        self.socket.recv(4096)
 
     def join_quick_room(self):
         message = self.make_message("cmd","quick_room")
         self.socket.send(pickle.dumps(message))
-        self.socket.recv(2048)
+        self.socket.recv(4096)
 
     def create_custom_room(self, room_number):
         message = self.make_message("cmd","create_custom_room "+room_number)
         self.socket.send(message)
-    
+
+    def join_custom_room(self, room_number):
+        message = self.make_message("cmd","join_custom_room "+room_number)
+        self.socket.send(message)
+
+    def quit(self):
+        message = self.make_message("cmd","quit")
+        self.socket.send(message)
+
     def make_message(self,message_type,message_body):
         message = {}
         message["sender"] = self.player_name
@@ -29,6 +37,7 @@ class ClientChat:
         message["body"] = message_body
         message["room_number"] = self.room_number
         return message
+
     # def run(self):
     #     while True:
     #         sockets_list = [self.socket]

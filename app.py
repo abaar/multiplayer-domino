@@ -277,15 +277,27 @@ def custom_room(room_number=None,player=None,participants=[]):
         player3Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
         player3Surface = player3Text.render("Player 3",False,(0,0,0))
     p3Img = pygame.image.load("assets/player3.jpg")
+
+
     while not lobi:
         if(not event_listened.empty()):
             message = event_listened.get()
+            print(message)
             if(message['response']=="update_custom_room"):
                 participants=message['body']
+            elif(message['response']=="quit_cusroom_succeed"):
+                game_intro()
 
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
                 exitting_game()
+            elif(event.type==pygame.MOUSEBUTTONUP and event.button==1):
+                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+                    message=make_message("cmd","quit_cusroom",room_num=room_number)
+                    socket.send(message)
+                elif(mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
+                    if(not "0" in participants):
+                        print("starting game")
         window.fill((255,255,255))
         window.blit(backSurface,(5,0))
 
@@ -327,15 +339,14 @@ def custom_room(room_number=None,player=None,participants=[]):
         
 
         mouse = pygame.mouse.get_pos()
-        clicked = pygame.mouse.get_pressed()
         if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
             backSurface = backText.render("back<",False,(61,73,91))
-            if(clicked[0]):
-                game_intro()
         elif(mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
-            startSurface = startText.render("Start",False,(61,73,91))
+            if(not "0" in participants):
+                startSurface = startText.render("Start",False,(61,73,91))
         else:
-            startSurface = startText.render("Start",False,(0,0,0))
+            if(not "0" in participants):
+                startSurface = startText.render("Start",False,(0,0,0))
             backSurface = backText.render("back<",False,(0,0,0))
         pygame.display.update()       
     

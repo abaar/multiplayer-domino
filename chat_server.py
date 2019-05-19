@@ -39,6 +39,10 @@ def broadcast_room(message,conn,theroom=False,room_number=False,ttype=False):
             message['body']=str(room.get_current_player_number())
             message['response']="qroom_update_players"
             message=pickle.dumps(message)
+        elif(ttype=="notify_quit_cusroom"):
+            message['body']=room.get_participants()
+            message['response']="update_custom_room"
+            message=pickle.dumps(message)
     if(theroom):
         room = theroom
     for client in room.get_all_players():
@@ -66,8 +70,18 @@ def clienthread(addr,conn):
                     message_to_send["body"] = "quit"
                     message_to_send_pickle = pickle.dumps(message_to_send) 
                     conn.send(message_to_send_pickle)
-                broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit")
-                continue
+                    broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit")
+                    continue
+                elif message['body'].strip().lower() == "quit_cusroom":
+                    print("quitting cusroom")
+                    room_service.quit_room(conn,message['room_number'])
+                    message_to_send['response']="quit_cusroom_succeed"
+                    message_to_send["room_number"] = "None"
+                    message_to_send["body"] = "quit"
+                    message_to_send_pickle = pickle.dumps(message_to_send) 
+                    conn.send(message_to_send_pickle)
+                    broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit_cusroom")
+                    continue
             else:    
                 
                 if message["body"].strip().lower() == "quick_room":

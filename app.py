@@ -63,6 +63,11 @@ def join_room():
     text_len = len(text)
     numerics = ["1","2","3","4","5","6","7","8","9","0"]
     while not jroom:
+        while(not event_listened.empty()):
+            message = event_listened.get()
+            if(message['response']=="join_custom_room_succeed"):
+                custom_room(room_number=message['room_number'],player=message['note'],participants=message['body'])
+        
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
                 exitting_game()
@@ -73,6 +78,13 @@ def join_room():
                 elif(text_len<4 and event.unicode in numerics):
                     text += event.unicode
                     text_len = len(text)
+            elif event.type == pygame.MOUSEBUTTONUP and event.button==1:
+                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+                    game_intro()
+                elif(mouse[0]>joinSurface_x and mouse[0]<joinSurface_x+joinSurface.get_width() and mouse[1]>joinSurface_y and mouse[1]<joinSurface_y+joinSurface.get_height()):
+                    message = make_message("cmd","join_custom_room "+text)
+                    socket.send(message)
+        
         textSurface = textText.render(text,False,(0,0,0))            
         mouse = pygame.mouse.get_pos()
         clicked = pygame.mouse.get_pressed()
@@ -83,12 +95,8 @@ def join_room():
 
         if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
             backSurface = backText.render("back<",False,(61,73,91))
-            if(clicked[0]):
-                game_intro()
         elif(mouse[0]>joinSurface_x and mouse[0]<joinSurface_x+joinSurface.get_width() and mouse[1]>joinSurface_y and mouse[1]<joinSurface_y+joinSurface.get_height()):
             joinSurface = backText.render("Join",False,(61,73,91))
-            if(clicked[0]):
-                game_start()
         else:
             joinSurface = backText.render("Join",False,(0,0,0))
             backSurface = backText.render("back<",False,(0,0,0))
@@ -182,8 +190,11 @@ def game_intro():
     while not intro:
         if(not event_listened.empty()):
             message = event_listened.get()
+            print(message)
             if(message['response']=="quick_room_joined"):
                 quick_loading(current_total_players=str(message['body']),room_number=message['room_number'])
+            elif(message['response']=="create_custom_room_succeed"):
+                custom_room(room_number=message['room_number'],player="1",participants=message['body'])
 
         for event in pygame.event.get():
             if (event.type==pygame.QUIT):
@@ -195,7 +206,8 @@ def game_intro():
                     socket.send(message)
                 elif ( (mouse[0]<cusRomSurface_x + cusRomSurface.get_width() and mouse[0] > cusRomSurface_x)  and \
                     (mouse[1]>cusRomSurface_y and mouse[1] < cusRomSurface_y + cusRomSurface.get_height() )):
-                    intro = custom_room()
+                    message=make_message("cmd","create_custom_room")
+                    socket.send(message)
                 elif ( mouse[0]<joinRomSurface_x + joinRomSurface.get_width() and mouse[0]>joinRomSurface_x and \
                     mouse[1]<joinRomSurface_y+joinRomSurface.get_height() and mouse[1]>joinRomSurface_y):
                     intro = join_room()
@@ -208,7 +220,6 @@ def game_intro():
         window.blit(joinRomSurface,(joinRomSurface_x,int(display_height/1.25)))
 
         mouse = pygame.mouse.get_pos()
-        clicked = pygame.mouse.get_pressed()
         if ( (mouse[0]< quickSurface_x + quickSurface.get_width() and mouse[0] > quickSurface_x) and \
             (mouse[1]>quickSurface_y and (mouse[1]< quickSurface_y+quickSurface.get_height()) )):
             quickSurface = quickText.render("Quick Search", False , (61, 73, 91))
@@ -224,61 +235,96 @@ def game_intro():
             cusRomSurface = cusRoomtext.render("Custom Room", False, (0, 0, 0))
         pygame.display.update()
 
-
-def custom_room():
+def custom_room(room_number=None,player=None,participants=[]):
     lobi = False
     backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
     backSurface = backText.render("back<",False,(0,0,0))
 
     idText = pygame.font.Font("assets/Pixel Emulator.otf",25)
-    idSurface = idText.render("Room ID : 12345",False,(0,0,0))
+    idSurface = idText.render("Room ID : " + str(room_number),False,(0,0,0))
 
     startText = pygame.font.Font("assets/Pixel Emulator.otf",25)
     startSurface = startText.render("Start",False,(0,0,0))
-
-    you1 = pygame.font.Font("assets/Pixel Emulator.otf",20)
-    youSurface = you1.render("You",False,(0,0,0))
+    
+    if player=="1":
+        player1Text = pygame.font.Font("assets/Pixel Emulator.otf",20)
+        player1Surface = player1Text.render("You",False,(0,0,0))
+    else:
+        player1Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+        player1Surface = player1Text.render("R-Master",False,(0,0,0))    
     p1Img = pygame.image.load("assets/player1.jpg")
     
-    player2Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
-    player2Surface = player2Text.render("Player 2",False,(0,0,0))
-    player2ready = player2Text.render("Ready",False,(0,0,0))
+    if player=="2":
+        player2Text = pygame.font.Font("assets/Pixel Emulator.otf",20)
+        player2Surface = player2Text.render("You",False,(0,0,0))        
+    else:
+        player2Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+        player2Surface = player2Text.render("Player 2",False,(0,0,0))
     p2Img = pygame.image.load("assets/player2.jpg")
 
-    player1Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
-    player1Surface = player1Text.render("Player 1",False,(0,0,0))
-    player1ready = player1Text.render("Ready",False,(0,0,0))
+    if player=="4":
+        player4Text = pygame.font.Font("assets/Pixel Emulator.otf",20)
+        player4Surface = player4Text.render("You",False,(0,0,0))        
+    else:
+        player4Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+        player4Surface = player4Text.render("Player 4",False,(0,0,0))
     p4Img = pygame.image.load("assets/player4.jpg")
 
-    player3Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
-    player3Surface = player3Text.render("Player 3",False,(0,0,0))
-    player3ready = player3Text.render("Ready",False,(0,0,0))
+    if player=="3":
+        player3Text = pygame.font.Font("assets/Pixel Emulator.otf",20)
+        player3Surface = player3Text.render("You",False,(0,0,0))
+    else:
+        player3Text = pygame.font.Font("assets/Pixel Emulator.otf",17)
+        player3Surface = player3Text.render("Player 3",False,(0,0,0))
     p3Img = pygame.image.load("assets/player3.jpg")
     while not lobi:
+        if(not event_listened.empty()):
+            message = event_listened.get()
+            if(message['response']=="update_custom_room"):
+                participants=message['body']
+
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
                 exitting_game()
         window.fill((255,255,255))
         window.blit(backSurface,(5,0))
 
-        window.blit(player1Surface,(102,125))
+
+        if(participants[3]=="1"):
+            window.blit(p4Img,(118,155))
+        if(player=="4"):
+            window.blit(player4Surface,(137,125))
+        else:
+            window.blit(player4Surface,(102,125))
         pygame.draw.rect(window,(0,0,0),(110,150,80,100),3)
-        window.blit(player1ready,(118,250))
-        window.blit(p4Img,(118,155))
 
         window.blit(idSurface,(display_width/2-idSurface.get_width()/2,80))
-        window.blit(player2Surface,(252,125))
+
+        if(participants[1]=="1"):
+            window.blit(p2Img,(268,155))
+        if(player=="2"):
+            window.blit(player2Surface,(277,125))
+        else:
+            window.blit(player2Surface,(252,125))
         pygame.draw.rect(window,(0,0,0),(260,150,80,100),3)
 
-        window.blit(player3Surface,(402,125))
+        if(participants[2]=="1"):
+            window.blit(p3Img,(418,155))
+        if(player=="3"):
+            window.blit(player3Surface,(427,125))
+        else:
+            window.blit(player3Surface,(402,125))
         pygame.draw.rect(window,(0,0,0),(410,150,80,100),3)
-        window.blit(player3ready,(418,250))
-        window.blit(p3Img,(418,155))
 
-        window.blit(p1Img,(268,355))
-        window.blit(youSurface,(277,325))
+        if(participants[0]=="1"):
+            window.blit(p1Img,(268,355))
+        if(player=="1"):
+            window.blit(player1Surface,(277,325))
+            window.blit(startSurface,(258,455))
+        else:
+            window.blit(player1Surface,(252,325))
         pygame.draw.rect(window,(0,0,0),(260,350,80,100),3)
-        window.blit(startSurface,(258,455))
+        
 
         mouse = pygame.mouse.get_pos()
         clicked = pygame.mouse.get_pressed()
@@ -304,3 +350,4 @@ if __name__ == '__main__':
     mythread.start()  
 
     game_intro()
+    # custom_room()

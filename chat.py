@@ -11,7 +11,7 @@ class RoomService:
         return room
 
     def create_custom_room(self,conn):
-        rom = Room(len(self.rooms))
+        rom = Room(len(self.rooms)+1)
         self.rooms.append(rom)
         rom.add_player(conn)
         return rom
@@ -65,7 +65,12 @@ class Room:
         self.number = number
         self.players = []
         self.is_full = False
-    
+        self.participants = ["1","0","0","0"]
+        self.p1=None
+        self.p2=None
+        self.p3=None
+        self.p4=None
+
     def get_room_number(self):
         return self.number
 
@@ -73,7 +78,19 @@ class Room:
         self.players.append(conn)
         if(len(self.players) >= 4):
             self.is_full = True
-    
+        if(self.p1==None):
+            self.p1=conn
+            self.participants[0]="1"
+        elif(self.p2==None):
+            self.p2=conn
+            self.participants[1]="1"
+        elif(self.p3==None):
+            self.p3=conn
+            self.participants[2]="1"
+        elif(self.p4==None):
+            self.p4=conn
+            self.participants[3]="1"
+
     def get_all_players(self):
         return self.players
 
@@ -82,8 +99,34 @@ class Room:
         
     def get_is_full(self):
         return self.is_full
+    
+    def get_participants(self):
+        return self.participants
 
     def remove_player(self,conn):
         self.players.remove(conn)
+        if(self.p1==conn):
+            self.p1=None
+            self.participants[0]="0"
+        elif(self.p2==conn):
+            self.p2=None
+            self.participants[1]="0"
+        elif(self.p3==conn):
+            self.p3=None
+            self.participants[2]="0"
+        elif(self.p4==conn):
+            self.p4=None 
+            self.participants[3]="0"
+
         if(len(self.players)<4):
             self.is_full=False
+    
+    def get_my_order(self,conn):
+        if(self.p1==conn):
+            return "1"
+        elif(self.p2==conn):
+            return "2"
+        elif(self.p3==conn):
+            return "3"
+        elif(self.p4==conn):
+            return "4" 

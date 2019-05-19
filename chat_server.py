@@ -50,7 +50,6 @@ def clienthread(addr,conn):
         try:
             message = conn.recv(4096)
             message = pickle.loads(message)
-            print(message)
             message_to_send = {}
             message_to_send["sender"] = message["sender"]
             message_to_send["body"] = message["body"].strip()
@@ -70,6 +69,7 @@ def clienthread(addr,conn):
                 broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit")
                 continue
             else:    
+                
                 if message["body"].strip().lower() == "quick_room":
                     message_to_send["sender"] = "admin"
                     room = room_service.join_quick_room(conn)
@@ -85,29 +85,43 @@ def clienthread(addr,conn):
                     message_to_send_pickle = pickle.dumps(message_to_send)
                     broadcast_room(message_to_send_pickle,conn,theroom=room)
                     continue
-                elif message["body"].strip().split()[0].lower() == "create_custom_room":
+                elif message["body"].strip().lower() == "create_custom_room":
                     message_to_send["sender"] = "admin"
-                    room_number = int(message["body"].strip().split()[1])
+                    print("searching a room")
                     room = room_service.create_custom_room(conn)
-                    message_to_send["body"] = "create_custom_room"
+                    print("got a room")
+                    message_to_send["body"] = room.get_participants()
+                    print("got the participants list")
                     message_to_send['response'] = "create_custom_room_succeed"
                     message_to_send["room_number"] = room.get_room_number()
+                    print(message_to_send)
                     message_to_send = pickle.dumps(message_to_send)
                     conn.send(message_to_send)     
                     continue
-                elif message["body"].strip().split()[0].lower() == "join_custom_room":
+                elif message["body"].split(" ")[0].lower() == "join_custom_room":
                     message_to_send["sender"] = "admin"
-                    room_number = int(message["body"].strip().split()[1])
+                    print(message['body'])
+                    room_number = int(message["body"].split(" ")[1])
+                    print("joining the room")
                     room = room_service.join_room(conn, room_number=room_number)
                     if room == None:
+                        print("cant join the room")
                         message_to_send['response'] = "join_custom_room_failed"
                         message_to_send["body"] = "Sorry, Cant Join Room Number "+str(room_number)
                     else:
+                        print("joining succeed")
                         message_to_send['response'] = "join_custom_room_succeed"
-                        message_to_send["body"] = "Welcome to Room Number "+str(room_number)
+                        message_to_send["body"] = room.get_participants()
+                        message_to_send['note'] = room.get_my_order(conn)
                         message_to_send["room_number"] = room_number
-                    message_to_send = pickle.dumps(message_to_send)
-                    conn.send(message_to_send)
+                    message_to_send_pickle = pickle.dumps(message_to_send)
+                    conn.send(message_to_send_pickle)
+
+                    if(room):
+                        message_to_send['response'] = "update_custom_room"
+                        message_to_send_pickle = pickle.dumps(message_to_send)
+                        broadcast_room(message_to_send_pickle,conn,theroom=room)
+
                     continue
         except:
             continue

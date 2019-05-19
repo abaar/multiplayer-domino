@@ -32,11 +32,12 @@ def chat_event_listener(useless,conn):
         except:
             continue
 
-def make_message(message_type,message_body,room_num=None):
+def make_message(message_type,message_body,room_num=None,notes=None):
     message = {}
     message["sender"] = player_name
     message["type"] = message_type
     message["body"] = message_body
+    message["note"] = notes
     message["room_number"] = room_num
     return pickle.dumps(message)
 
@@ -245,6 +246,11 @@ def custom_room(room_number=None,player=None,participants=[]):
 
     startText = pygame.font.Font("assets/Pixel Emulator.otf",25)
     startSurface = startText.render("Start",False,(0,0,0))
+
+    TendangText = pygame.font.Font("assets/Pixel Emulator.otf",17)
+    Tendang2Surface = TendangText.render("KICK",False,(0,0,0))
+    Tendang3Surface = TendangText.render("KICK",False,(0,0,0))
+    Tendang4Surface = TendangText.render("KICK",False,(0,0,0))
     
     if player=="1":
         player1Text = pygame.font.Font("assets/Pixel Emulator.otf",20)
@@ -292,14 +298,27 @@ def custom_room(room_number=None,player=None,participants=[]):
             if(event.type==pygame.QUIT):
                 exitting_game()
             elif(event.type==pygame.MOUSEBUTTONUP and event.button==1):
-                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height() and participants.count("0")==3):
                     message=make_message("cmd","quit_cusroom",room_num=room_number)
+                    socket.send(message)
+                elif(participants[3]=="1" and mouse[0]>124 and mouse[0]<124+Tendang4Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang4Surface.get_height()):
+                    message=make_message("cmd","kick 4",room_num=room_number)
+                    socket.send(message)
+                elif(participants[2]=="1" and mouse[0]>274 and mouse[0]<274+Tendang3Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang3Surface.get_height()):
+                    message=make_message("cmd","kick 3",room_num=room_number)
+                    socket.send(message)
+                elif(participants[1]=="1" and mouse[0]>424 and mouse[0]<424+Tendang2Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang2Surface.get_height()):
+                    message=make_message("cmd","kick 2",room_num=room_number)
                     socket.send(message)
                 elif(mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
                     if(not "0" in participants):
                         print("starting game")
         window.fill((255,255,255))
-        window.blit(backSurface,(5,0))
+        
+        if(participants.count("0")==3 and player=="1"):
+            window.blit(backSurface,(5,0))
+        elif(player!="1"):
+            window.blit(backSurface,(5,0))
 
 
         if(participants[3]=="1"):
@@ -332,7 +351,14 @@ def custom_room(room_number=None,player=None,participants=[]):
             window.blit(p1Img,(268,355))
         if(player=="1"):
             window.blit(player1Surface,(277,325))
-            window.blit(startSurface,(258,455))
+            if(not "0" in participants):
+                window.blit(startSurface,(258,455))
+            if(participants[3]=="1"):
+                window.blit(Tendang4Surface,(124,250))
+            elif(participants[1]=="1"):
+                window.blit(Tendang2Surface,(274,250))
+            elif(participants[2]=="1"):
+                window.blit(Tendang3Surface,(424,250))
         else:
             window.blit(player1Surface,(252,325))
         pygame.draw.rect(window,(0,0,0),(260,350,80,100),3)
@@ -342,12 +368,20 @@ def custom_room(room_number=None,player=None,participants=[]):
         if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
             backSurface = backText.render("back<",False,(61,73,91))
         elif(mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
-            if(not "0" in participants):
-                startSurface = startText.render("Start",False,(61,73,91))
+            startSurface = startText.render("Start",False,(61,73,91))
+        elif(mouse[0]>124 and mouse[0]<124+Tendang4Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang4Surface.get_height()):
+            Tendang4Surface = TendangText.render("KICK",False,(61,73,91))
+        elif(mouse[0]>424 and mouse[0]<424+Tendang3Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang3Surface.get_height()):
+            Tendang3Surface = TendangText.render("KICK",False,(61,73,91))
+        elif(mouse[0]>274 and mouse[0]<274+Tendang2Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang2Surface.get_height()):
+            Tendang2Surface = TendangText.render("KICK",False,(61,73,91))
         else:
-            if(not "0" in participants):
-                startSurface = startText.render("Start",False,(0,0,0))
+            startSurface = startText.render("Start",False,(0,0,0))
             backSurface = backText.render("back<",False,(0,0,0))
+            Tendang2Surface = TendangText.render("KICK",False,(0,0,0))
+            Tendang3Surface = TendangText.render("KICK",False,(0,0,0))
+            Tendang4Surface = TendangText.render("KICK",False,(0,0,0))   
+
         pygame.display.update()       
     
                 

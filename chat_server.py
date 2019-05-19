@@ -80,7 +80,10 @@ def clienthread(addr,conn):
                     message_to_send["body"] = "quit"
                     message_to_send_pickle = pickle.dumps(message_to_send) 
                     conn.send(message_to_send_pickle)
-                    broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit_cusroom")
+                    if(message['note']=="master"):
+                        room_service.disband_room(message['room_number'])
+                    else:    
+                        broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit_cusroom")
                     continue
             else:    
                 

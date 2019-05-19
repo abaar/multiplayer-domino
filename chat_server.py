@@ -54,6 +54,7 @@ def clienthread(addr,conn):
         try:
             message = conn.recv(4096)
             message = pickle.loads(message)
+            print(message)
             message_to_send = {}
             message_to_send["sender"] = message["sender"]
             message_to_send["body"] = message["body"].strip()
@@ -85,8 +86,26 @@ def clienthread(addr,conn):
                     else:    
                         broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit_cusroom")
                     continue
+                elif message["body"].split(" ")[0].lower() == "kick":
+                    message_to_send["sender"] = "admin"
+                    print("going to kick")
+                    room = room_service.search_room(message['room_number'])
+                    if (room):
+                        print("kicking from the room")
+                        kicked_guy = room.kick_this(message['body'].split(" ")[1])
+                        if(kicked_guy):
+                            print("been kicked")
+                            message_to_send['response']="been_kicked"
+                            message_to_send_pickle = pickle.dumps(message_to_send)
+                            kicked_guy.send(message_to_send_pickle) #send notif that conn've been kicked
+
+                            message_to_send['response']="update_custom_room"
+                            message_to_send['body']=room.get_participants()
+                            message_to_send_pickle = pickle.dumps(message_to_send)
+                            broadcast_room(message_to_send_pickle,None,theroom=room) #send update room info
+                    continue
             else:    
-                
+                print(message)
                 if message["body"].strip().lower() == "quick_room":
                     message_to_send["sender"] = "admin"
                     room = room_service.join_quick_room(conn)
@@ -124,7 +143,6 @@ def clienthread(addr,conn):
                     if room == None:
                         print("cant join the room")
                         message_to_send['response'] = "join_custom_room_failed"
-                        message_to_send["body"] = "Sorry, Cant Join Room Number "+str(room_number)
                     else:
                         print("joining succeed")
                         message_to_send['response'] = "join_custom_room_succeed"

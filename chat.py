@@ -130,3 +130,22 @@ class Room:
             return "3"
         elif(self.p4==conn):
             return "4" 
+
+    def kick_this(self,player):
+        try:
+            conn=None
+            if(player=="2"):
+                conn=self.p2
+                self.remove_player(self.p2)
+                self.p2=None
+            elif(player=="3"):
+                conn=self.p3
+                self.remove_player(self.p3)
+                self.p3=None
+            elif(player=="4"):
+                conn=self.p4
+                self.remove_player(self.p4)
+                self.p4=None
+            return conn
+        except:
+            return False

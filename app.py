@@ -51,6 +51,82 @@ def exitting_game(current_room_number=None):
 def game_start():
     print("halo")
 
+def failed_join_room():
+    failedn=False
+
+    okText = pygame.font.Font("assets/Pixel Emulator.otf",45)
+    okSurface = okText.render("OK",False,(0,0,0))
+    okSurface_x = display_width/2 - okSurface.get_width()/2
+    okSurface_y = display_height/2 - okSurface.get_height()/2 + 35
+
+    notifText = pygame.font.Font("assets/Pixel Emulator.otf",35)
+    notifSurface = notifText.render("Sorry, request rejected",False,(0,0,0))
+    notifSurface_x = display_width/2 - notifSurface.get_width()/2
+    notifSurface_y = display_height/2 - notifSurface.get_height()/2 - 100
+
+    notifSurface2 = notifText.render("try again later",False,(0,0,0))
+    notifSurface2_x = display_width/2 - notifSurface2.get_width()/2
+    notifSurface2_y = display_height/2 - notifSurface2.get_height()/2 - 50
+    while not failedn:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exitting_game()
+            elif event.type == pygame.MOUSEBUTTONUP and event.button==1:
+                if(mouse[0]>okSurface_x and mouse[0]<okSurface_x+okSurface.get_width() and mouse[1]>okSurface_y and mouse[1]<okSurface_y+okSurface.get_height()):
+                    join_room()
+                    failedn=True
+        
+        mouse = pygame.mouse.get_pos()
+        window.fill((255,255,255))
+        window.blit(notifSurface,(notifSurface_x,notifSurface_y))
+        window.blit(notifSurface2,(notifSurface2_x,notifSurface2_y))
+        window.blit(okSurface,(okSurface_x,okSurface_y))
+
+        if(mouse[0]>okSurface_x and mouse[0]<okSurface_x+okSurface.get_width() and mouse[1]>okSurface_y and mouse[1]<okSurface_y+okSurface.get_height()):
+            okSurface = okText.render("OK",False,(61,73,91))
+        else:
+            okSurface = okText.render("ok",False,(0,0,0))
+
+        pygame.display.update()   
+
+def kicked_notif():
+    kickedn=False
+
+    okText = pygame.font.Font("assets/Pixel Emulator.otf",45)
+    okSurface = okText.render("OK",False,(0,0,0))
+    okSurface_x = display_width/2 - okSurface.get_width()/2
+    okSurface_y = display_height/2 - okSurface.get_height()/2 + 35
+
+    notifText = pygame.font.Font("assets/Pixel Emulator.otf",35)
+    notifSurface = notifText.render("You've been kicked",False,(0,0,0))
+    notifSurface_x = display_width/2 - notifSurface.get_width()/2
+    notifSurface_y = display_height/2 - notifSurface.get_height()/2 - 100
+
+    notifSurface2 = notifText.render("from the room",False,(0,0,0))
+    notifSurface2_x = display_width/2 - notifSurface2.get_width()/2
+    notifSurface2_y = display_height/2 - notifSurface2.get_height()/2 - 50
+    while not kickedn:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exitting_game()
+            elif event.type == pygame.MOUSEBUTTONUP and event.button==1:
+                if(mouse[0]>okSurface_x and mouse[0]<okSurface_x+okSurface.get_width() and mouse[1]>okSurface_y and mouse[1]<okSurface_y+okSurface.get_height()):
+                    game_intro()
+                    kickedn=True
+        
+        mouse = pygame.mouse.get_pos()
+        window.fill((255,255,255))
+        window.blit(notifSurface,(notifSurface_x,notifSurface_y))
+        window.blit(notifSurface2,(notifSurface2_x,notifSurface2_y))
+        window.blit(okSurface,(okSurface_x,okSurface_y))
+
+        if(mouse[0]>okSurface_x and mouse[0]<okSurface_x+okSurface.get_width() and mouse[1]>okSurface_y and mouse[1]<okSurface_y+okSurface.get_height()):
+            okSurface = okText.render("OK",False,(61,73,91))
+        else:
+            okSurface = okText.render("ok",False,(0,0,0))
+
+        pygame.display.update()
+
 def join_room():
     jroom = False
     backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
@@ -68,6 +144,8 @@ def join_room():
             message = event_listened.get()
             if(message['response']=="join_custom_room_succeed"):
                 custom_room(room_number=message['room_number'],player=message['note'],participants=message['body'])
+            elif(message['response']=="join_custom_room_failed"):
+                failed_join_room()
         
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
@@ -293,24 +371,34 @@ def custom_room(room_number=None,player=None,participants=[]):
                 participants=message['body']
             elif(message['response']=="quit_cusroom_succeed"):
                 game_intro()
+            elif(message['response']=="been_kicked"):
+                kicked_notif()
 
         for event in pygame.event.get():
             if(event.type==pygame.QUIT):
                 exitting_game()
             elif(event.type==pygame.MOUSEBUTTONUP and event.button==1):
-                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height() and participants.count("0")==3):
-                    message=make_message("cmd","quit_cusroom",room_num=room_number)
-                    socket.send(message)
-                elif(participants[3]=="1" and mouse[0]>124 and mouse[0]<124+Tendang4Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang4Surface.get_height()):
+                if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
+                    if player=="1" and participants.count("0")==3:
+                        message=make_message("cmd","quit_cusroom",room_num=room_number)
+                        socket.send(message)
+                    elif player!="1":
+                        message=make_message("cmd","quit_cusroom",room_num=room_number)
+                        socket.send(message)
+
+                elif(player=="1" and participants[3]=="1" and mouse[0]>124 and mouse[0]<124+Tendang4Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang4Surface.get_height()):
                     message=make_message("cmd","kick 4",room_num=room_number)
+                    # print(message)
                     socket.send(message)
-                elif(participants[2]=="1" and mouse[0]>274 and mouse[0]<274+Tendang3Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang3Surface.get_height()):
+                elif(player=="1" and participants[2]=="1" and mouse[0]>424 and mouse[0]<424+Tendang3Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang3Surface.get_height()):
                     message=make_message("cmd","kick 3",room_num=room_number)
+                    # print(message)
                     socket.send(message)
-                elif(participants[1]=="1" and mouse[0]>424 and mouse[0]<424+Tendang2Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang2Surface.get_height()):
+                elif(player=="1" and participants[1]=="1" and mouse[0]>274 and mouse[0]<274+Tendang2Surface.get_width() and mouse[1]>250 and mouse[1]<250+Tendang2Surface.get_height()):
                     message=make_message("cmd","kick 2",room_num=room_number)
+                    # print(message)
                     socket.send(message)
-                elif(mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
+                elif(player=="1" and mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
                     if(not "0" in participants):
                         print("starting game")
         window.fill((255,255,255))
@@ -355,9 +443,9 @@ def custom_room(room_number=None,player=None,participants=[]):
                 window.blit(startSurface,(258,455))
             if(participants[3]=="1"):
                 window.blit(Tendang4Surface,(124,250))
-            elif(participants[1]=="1"):
+            if(participants[1]=="1"):
                 window.blit(Tendang2Surface,(274,250))
-            elif(participants[2]=="1"):
+            if(participants[2]=="1"):
                 window.blit(Tendang3Surface,(424,250))
         else:
             window.blit(player1Surface,(252,325))
@@ -396,3 +484,5 @@ if __name__ == '__main__':
 
     game_intro()
     # custom_room()
+    # kicked_notif()
+    # failed_join_room()

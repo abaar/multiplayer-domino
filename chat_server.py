@@ -76,14 +76,13 @@ def clienthread(addr,conn):
                 elif message['body'].strip().lower() == "quit_cusroom":
                     print("quitting cusroom")
                     room_service.quit_room(conn,message['room_number'])
+                    print("quit succeed")
                     message_to_send['response']="quit_cusroom_succeed"
                     message_to_send["room_number"] = "None"
                     message_to_send["body"] = "quit"
                     message_to_send_pickle = pickle.dumps(message_to_send) 
                     conn.send(message_to_send_pickle)
-                    if(message['note']=="master"):
-                        room_service.disband_room(message['room_number'])
-                    else:    
+                    if(message['note']!="im-last"):
                         broadcast_room(message_to_send,conn,room_number=message["room_number"],ttype="notify_quit_cusroom")
                     continue
                 elif message["body"].split(" ")[0].lower() == "kick":

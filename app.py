@@ -22,6 +22,44 @@ socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 player_name = None
 mythread = None
 stoptread = False
+domino_tiles = {}
+domino_tiles['00']=pygame.image.load("assets/domino-tiles/0-0-copy.png")
+domino_tiles['01']=pygame.image.load("assets/domino-tiles/0-1.png")
+domino_tiles['02']=pygame.image.load("assets/domino-tiles/0-2.png")
+domino_tiles['03']=pygame.image.load("assets/domino-tiles/0-3.png")
+domino_tiles['04']=pygame.image.load("assets/domino-tiles/0-4.png")
+domino_tiles['05']=pygame.image.load("assets/domino-tiles/0-5.png")
+domino_tiles['06']=pygame.image.load("assets/domino-tiles/0-6.png")
+domino_tiles['11']=pygame.image.load("assets/domino-tiles/1-1.png")
+domino_tiles['12']=pygame.image.load("assets/domino-tiles/1-2.png")
+domino_tiles['13']=pygame.image.load("assets/domino-tiles/1-3.png")
+domino_tiles['14']=pygame.image.load("assets/domino-tiles/1-4.png")
+domino_tiles['15']=pygame.image.load("assets/domino-tiles/1-5.png")
+domino_tiles['16']=pygame.image.load("assets/domino-tiles/1-6.png")
+domino_tiles['22']=pygame.image.load("assets/domino-tiles/2-2.png")
+domino_tiles['23']=pygame.image.load("assets/domino-tiles/2-3.png")
+domino_tiles['24']=pygame.image.load("assets/domino-tiles/2-4.png")
+domino_tiles['25']=pygame.image.load("assets/domino-tiles/2-5.png")
+domino_tiles['26']=pygame.image.load("assets/domino-tiles/2-6.png")
+domino_tiles['33']=pygame.image.load("assets/domino-tiles/3-3.png")
+domino_tiles['34']=pygame.image.load("assets/domino-tiles/3-4.png")
+domino_tiles['35']=pygame.image.load("assets/domino-tiles/3-5.png")
+domino_tiles['36']=pygame.image.load("assets/domino-tiles/3-6.png")
+domino_tiles['44']=pygame.image.load("assets/domino-tiles/4-4.png")
+domino_tiles['45']=pygame.image.load("assets/domino-tiles/4-5.png")
+domino_tiles['46']=pygame.image.load("assets/domino-tiles/4-6.png")
+domino_tiles['55']=pygame.image.load("assets/domino-tiles/5-5.png")
+domino_tiles['56']=pygame.image.load("assets/domino-tiles/5-6.png")
+domino_tiles['66']=pygame.image.load("assets/domino-tiles/6-6.png")
+
+domino_tiles_tails={}
+domino_tiles_tails["0"]=pygame.image.load("assets/domino-tiles/0.png")
+domino_tiles_tails["1"]=pygame.image.load("assets/domino-tiles/1.png")
+domino_tiles_tails["2"]=pygame.image.load("assets/domino-tiles/2.png")
+domino_tiles_tails["3"]=pygame.image.load("assets/domino-tiles/3.png")
+domino_tiles_tails["4"]=pygame.image.load("assets/domino-tiles/4.png")
+domino_tiles_tails["5"]=pygame.image.load("assets/domino-tiles/5.png")
+domino_tiles_tails["6"]=pygame.image.load("assets/domino-tiles/6.png")
 
 def chat_event_listener(useless,conn):
      while not stoptread:
@@ -48,8 +86,65 @@ def exitting_game(current_room_number=None):
     stoptread=True
     quit()
 
+def transformImg(obj,scale,rotate=None):
+    if(rotate!=None):
+        return pygame.transform.rotate(pygame.transform.scale(obj,scale),90)
+    return pygame.transform.scale(obj,scale)
+
+def mycard(objs,height, types="potrait"):
+    if(types=="potrait"):
+        card_len = len(objs)
+        width_total = card_len*56
+        center = display_width/2 - width_total/2
+        for obj in objs:
+            window.blit(transformImg(obj,(55,120)),(center,height))
+            center = center + 56
+    else:
+        card_len = len(objs)
+        width_total = card_len*56
+        center = display_width/2 - width_total/2
+        for obj in objs:
+            window.blit(transformImg(obj,(55,120),rotate=90),(height,center-75))
+            center = center + 56
+
+
+
+# def boardcard(obj):
+#     return pygame.transform.scale(obj,(35,65))
+
 def game_start():
-    print("halo")
+    on_game=False
+
+    p1cards=[domino_tiles['00'],domino_tiles['03'],domino_tiles['02']]
+    p2cards=[domino_tiles['00'],domino_tiles['00'],domino_tiles['00'],domino_tiles['00']]
+    p3cards=[domino_tiles['00'],domino_tiles['00']]
+    p4cards=[domino_tiles['00'],domino_tiles['00'],domino_tiles['00'],domino_tiles['00']]
+
+    headtailText = pygame.font.Font("assets/Pixel Emulator.otf",35)
+    headSurface = headtailText.render("HEAD",False,(0,0,0))
+    tailSurface = headtailText.render("TAIL",False,(0,0,0))
+    drawSurface = headtailText.render("DRAW CARD",False,(0,0,0))
+
+    while not on_game:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exitting_game()
+        
+        window.fill((255,255,255))
+
+        mycard(p1cards,460)
+        mycard(p2cards,-70)
+        mycard(p3cards,-70,types="landscape")
+        mycard(p4cards,550,types="landscape")
+
+        window.blit(headSurface,(display_width/2-headSurface.get_width()/2-100,150))
+        window.blit(transformImg(domino_tiles_tails['0'],(100,100)),(display_width/2-headSurface.get_width()/2-99,195))
+        window.blit(tailSurface,(display_width/2-tailSurface.get_width()/2+100,150))
+        window.blit(transformImg(domino_tiles_tails['0'],(100,100)),(display_width/2-tailSurface.get_width()/2+99,195))
+
+        window.blit(drawSurface,(display_width/2-drawSurface.get_width()/2 , 350))
+
+        pygame.display.update()
 
 def failed_join_room():
     failedn=False
@@ -380,7 +475,7 @@ def custom_room(room_number=None,player=None,participants=[]):
             elif(event.type==pygame.MOUSEBUTTONUP and event.button==1):
                 if(mouse[0]>5 and mouse[0]<5+backSurface.get_width() and mouse[1]>0 and mouse[1]<backSurface.get_height()):
                     if player=="1" and participants.count("0")==3:
-                        message=make_message("cmd","quit_cusroom",room_num=room_number)
+                        message=make_message("cmd","quit_cusroom",room_num=room_number,notes="im-last")
                         socket.send(message)
                     elif player!="1":
                         message=make_message("cmd","quit_cusroom",room_num=room_number)
@@ -482,7 +577,8 @@ if __name__ == '__main__':
     mythread=threading.Thread(target=chat_event_listener,args=(address,socket))
     mythread.start()  
 
-    game_intro()
+    # game_intro()
+    game_start()
     # custom_room()
     # kicked_notif()
     # failed_join_room()

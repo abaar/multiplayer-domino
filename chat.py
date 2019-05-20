@@ -1,6 +1,8 @@
 class RoomService:
     def __init__(self):
         self.rooms = []
+        self.max = 0
+        self.rids = []
     
     def add_room(self,room):
         self.rooms.append(room)
@@ -11,7 +13,16 @@ class RoomService:
         return room
 
     def create_custom_room(self,conn):
-        rom = Room(len(self.rooms)+1)
+        rid=False
+        for x in range(1,self.max+1):
+            if(not x in self.rids):
+                rid=x
+                break
+        if(rid==False):
+            self.max=self.max+1
+            rid=self.max
+        rom = Room(rid)
+        self.rids.append(rid)
         self.rooms.append(rom)
         rom.add_player(conn)
         return rom
@@ -36,6 +47,9 @@ class RoomService:
                     return selected_room
                 selected_room_number += 1
         room = Room(selected_room_number)
+        self.rids.append(selected_room_number)
+        if(selected_room_number>self.max):
+            self.max=selected_room_number
         selected_room = room
         self.rooms.append(selected_room)
         return selected_room
@@ -59,6 +73,10 @@ class RoomService:
     def quit_room(self,conn,room_number):
         room = self.search_room(room_number)
         room.remove_player(conn)
+        if(room.is_empty()):
+            self.rooms.remove(room)
+            self.rids.remove(room.get_room_number())
+
 
 class Room:
     def __init__(self, number):
@@ -148,4 +166,10 @@ class Room:
                 self.p4=None
             return conn
         except:
+            return False
+    
+    def is_empty(self):
+        if(len(self.players)==0):
+            return True
+        else:
             return False

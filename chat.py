@@ -4,11 +4,11 @@ class RoomService:
         self.max = 0
         self.rids = []
     
-    def add_room(self,room):
+    def add_room(self,room,room_kind):
         self.rooms.append(room)
 
     def join_quick_room(self,conn):
-        room = self.get_available_room()
+        room = self.get_available_room("quick")
         room.add_player(conn)
         return room
 
@@ -21,7 +21,7 @@ class RoomService:
         if(rid==False):
             self.max=self.max+1
             rid=self.max
-        rom = Room(rid)
+        rom = Room(rid,"custom")
         self.rids.append(rid)
         self.rooms.append(rom)
         rom.add_player(conn)
@@ -30,23 +30,25 @@ class RoomService:
     def search_room(self, room_number):
         found_room = None
         for room in self.rooms:
-            if (room.get_room_number() == room_number):
+            if (room.get_room_number() == room_number and room.get_kind() != "quick"):
                 found_room = room
                 break
         return found_room
 
-    def get_available_room(self):
+    def get_available_room(self, room_kind):
         is_found = False
         selected_room = None
         selected_room_number = 1
         if(len(self.rooms)):
             for room in self.rooms:
+                if room.get_kind() != room_kind:
+                    continue
                 is_found = not(room.get_is_full())
                 if(is_found):
                     selected_room = room
                     return selected_room
                 selected_room_number += 1
-        room = Room(selected_room_number)
+        room = Room(selected_room_number,room_kind)
         self.rids.append(selected_room_number)
         if(selected_room_number>self.max):
             self.max=selected_room_number
@@ -79,16 +81,19 @@ class RoomService:
 
 
 class Room:
-    def __init__(self, number):
+    def __init__(self, number, kind):
         self.number = number
         self.players = []
         self.is_full = False
+        self.kind = kind
         self.participants = ["1","0","0","0"]
         self.p1=None
         self.p2=None
         self.p3=None
         self.p4=None
 
+    def get_kind(self):
+        return self.kind
     def get_room_number(self):
         return self.number
 

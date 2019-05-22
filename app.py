@@ -495,7 +495,8 @@ def custom_room(room_number=None,player=None,participants=[]):
                     socket.send(message)
                 elif(player=="1" and mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
                     if(not "0" in participants):
-                        print("starting game")
+                        # print("starting game")
+                        game_start()
         window.fill((255,255,255))
         
         if(participants.count("0")==3 and player=="1"):
@@ -577,8 +578,8 @@ if __name__ == '__main__':
     mythread=threading.Thread(target=chat_event_listener,args=(address,socket))
     mythread.start()  
 
-    # game_intro()
-    game_start()
+    game_intro()
+    # game_start()
     # custom_room()
     # kicked_notif()
     # failed_join_room()

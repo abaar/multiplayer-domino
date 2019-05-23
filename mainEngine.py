@@ -181,57 +181,6 @@ class MainDrawGame:
         else:
             return False
 
-    def inGame(self):
-        # Game akan terus berjalan hingga kartu habis atau sudah ada pemenangnya
-        while True:
-            print "TURN " + str(self.turn)
-            # Cek dulu kartu di player ada di meja atau tidak
-            if self.drawCard():
-                print "Kartu di tangan tidak memiliki titik yang sama dengan di meja, giliran dilewat"
-            else:
-                print self.player[self.index].name + " Has Card -> " + str(self.player[self.index].kartu)
-                print "Your Turn..."
-                while True:
-                    dot = raw_input()
-                    # Jika yang diinputkan ada di player
-                    if dot in self.player[self.index].kartu:
-                        print self.player[self.index].name + " Have Choose " + str(
-                            self.player[self.index].kartu[dot]) + " Card"
-                        # Jika kartu yang diinputkan player ada di table
-                        if self.card.readyInTable(self.player[self.index].kartu[dot]):
-                            self.card.inTable(self.player[self.index].kartu[dot])
-                            self.player[self.index].throwCard(dot)
-                            break
-                    else:
-                        print "Masukan kartu yang kamu miliki saja..."
-
-            print self.player[self.index].name + " Has Card -> " + str(self.player[self.index].kartu)
-
-            # Jika ada kartu dari player yang habis
-            if len(self.player[self.index].kartu) == 0:
-                self.result("Bergerak")
-                print self.player[self.index].name + " Win This Round"
-                print "Kamu mendapat poin " + str(self.player[self.index].poin)
-                return self.index, self.player[self.index].poin
-            # Jika tidak ada yang bisa bergerak
-            if self.bergerak == 0:
-                print "Sudah tidak ada yang bisa bergerak"
-                self.result("Tidak Bisa")
-                print self.player[self.index].name + " Win This Round"
-                print "Kamu mendapat poin " + str(self.player[self.index].poin)
-                return self.index, self.player[self.index].poin
-
-            # Untuk looping ketika sudah player 4 balik ke player 1
-            self.index += 1
-            if self.index == self.jmlplayer:
-                self.index = 0
-
-            # Untuk pertambahan TURN
-            self.turnindex += 1
-            if self.turnindex == self.jmlplayer:
-                self.turnindex = 0
-                self.turn += 1
-
     def result(self, penanda):
         # Kalau sudah tidak ada yang bisa bergerak
         # Maka akan dinilai dahulu poin terkecil dari setiap player untuk ditentukan siapa pemenangnya

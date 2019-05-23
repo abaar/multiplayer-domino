@@ -3,6 +3,7 @@ import pickle
 import socket
 import threading
 import Queue
+import mainEngine
 
 pygame.init()
 
@@ -22,6 +23,7 @@ socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 player_name = None
 mythread = None
 stoptread = False
+
 domino_tiles = {}
 domino_tiles['00']=pygame.image.load("assets/domino-tiles/0-0-copy.png")
 domino_tiles['01']=pygame.image.load("assets/domino-tiles/0-1.png")
@@ -91,7 +93,8 @@ def transformImg(obj,scale,rotate=None):
         return pygame.transform.rotate(pygame.transform.scale(obj,scale),90)
     return pygame.transform.scale(obj,scale)
 
-def mycard(objs,height, types="potrait"):
+
+def mycard(objs, height, types="potrait"):
     if(types=="potrait"):
         card_len = len(objs)
         width_total = card_len*56
@@ -108,43 +111,178 @@ def mycard(objs,height, types="potrait"):
             center = center + 56
 
 
+def inGame(game, player, card):
+    # Cek dulu kartu di player ada di meja atau tidak
+    if game.drawCard():
+        print "Kartu di tangan tidak memiliki titik yang sama dengan di meja, giliran dilewat"
+    else:
+        print player[game.index].name + " Has Card -> " + str(player[game.index].kartu)
+        print "Your Turn..."
+        while True:
+            dot = raw_input()
+            # Jika yang diinputkan ada di player
+            if dot in player[game.index].kartu:
+                print player[game.index].name + " Have Choose " + str(
+                    player[game.index].kartu[dot]) + " Card"
+                # Jika kartu yang diinputkan player ada di table
+                if card.readyInTable(game.player[game.index].kartu[dot]):
+                    card.inTable(player[game.index].kartu[dot])
+                    player[game.index].throwCard(dot)
+                    break
+            else:
+                print "Masukan kartu yang kamu miliki saja..."
 
-# def boardcard(obj):
-#     return pygame.transform.scale(obj,(35,65))
+    print player[game.index].name + " Has Card -> " + str(player[game.index].kartu)
+
+    # Jika ada kartu dari player yang habis
+    if len(player[game.index].kartu) == 0:
+        game.result("Bergerak")
+        print player[game.index].name + " Win This Round"
+        print "Kamu mendapat poin " + str(player[game.index].poin)
+    # Jika tidak ada yang bisa bergerak
+    if game.bergerak == 0:
+        print "Sudah tidak ada yang bisa bergerak"
+        game.result("Tidak Bisa")
+        print player[game.index].name + " Win This Round"
+        print "Kamu mendapat poin " + str(player[game.index].poin)
+
+    # Untuk looping ketika sudah player 4 balik ke player 1
+    index = game.index
+    game.index += 1
+    if game.index == game.jmlplayer:
+        game.index = 0
+
+    # Untuk pertambahan TURN
+    game.turnindex += 1
+    if game.turnindex == game.jmlplayer:
+        game.turnindex = 0
+        game.turn += 1
+
+    return index
+
 
 def game_start():
-    on_game=False
-
-    p1cards=[domino_tiles['00'],domino_tiles['03'],domino_tiles['02']]
-    p2cards=[domino_tiles['00'],domino_tiles['00'],domino_tiles['00'],domino_tiles['00']]
-    p3cards=[domino_tiles['00'],domino_tiles['00']]
-    p4cards=[domino_tiles['00'],domino_tiles['00'],domino_tiles['00'],domino_tiles['00']]
+    # Inisialisasi dari setiap file di mainEngine
+    player = {}
+    for j in range(4):
+        name = "Player " + str(j+1)
+        player[j] = mainEngine.Player(name)
+    card = mainEngine.Card()
+    # Membuat semua tampilan dengan kosong dahulu
+    tampilanCard = {}
+    tampilanIndex = {}
+    for t in range(4):
+        tampilanCard[t] = []
+        tampilanIndex[t] = []
+    game = mainEngine.MainDrawGame(player, 4, card)
+    game.firstDraw()
+    game.firstTurn()
+    # Transform kartu dari data ke tampilan
+    for j in range(4):
+        for key in player[j].kartu:
+            tampilanIndex[j].append(key)
+            tampilanCard[j].append(domino_tiles[key])
 
     headtailText = pygame.font.Font("assets/Pixel Emulator.otf",35)
     headSurface = headtailText.render("HEAD",False,(0,0,0))
     tailSurface = headtailText.render("TAIL",False,(0,0,0))
     drawSurface = headtailText.render("DRAW CARD",False,(0,0,0))
 
-    while not on_game:
+    # Game akan terus berjalan hingga ada pemenangnya
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exitting_game()
-        
-        window.fill((255,255,255))
-
-        mycard(p1cards,460)
-        mycard(p2cards,-70)
-        mycard(p3cards,-70,types="landscape")
-        mycard(p4cards,550,types="landscape")
-
-        window.blit(headSurface,(display_width/2-headSurface.get_width()/2-100,150))
-        window.blit(transformImg(domino_tiles_tails['0'],(100,100)),(display_width/2-headSurface.get_width()/2-99,195))
-        window.blit(tailSurface,(display_width/2-tailSurface.get_width()/2+100,150))
-        window.blit(transformImg(domino_tiles_tails['0'],(100,100)),(display_width/2-tailSurface.get_width()/2+99,195))
+        window.fill((255, 255, 255))
+        mycard(tampilanCard[0], 460)
+        mycard(tampilanCard[1], -70)
+        mycard(tampilanCard[2], -70, types="landscape")
+        mycard(tampilanCard[3], 550, types="landscape")
+        # Jika awal permainan maka yg di table NULL
+        if game.turn == 1 and game.turnindex == 0:
+            window.blit(headSurface,(display_width/2-headSurface.get_width()/2-100,150))
+            window.blit(transformImg(domino_tiles_tails['0'],(100,100)),(display_width/2-headSurface.get_width()/2-99,195))
+            window.blit(tailSurface,(display_width/2-tailSurface.get_width()/2+100,150))
+            window.blit(transformImg(domino_tiles_tails['0'],(100,100)),(display_width/2-tailSurface.get_width()/2+99,195))
+        else:
+            window.blit(headSurface, (display_width / 2 - headSurface.get_width() / 2 - 100, 150))
+            window.blit(transformImg(domino_tiles_tails[str(card.ready[0])], (100, 100)),
+                        (display_width / 2 - headSurface.get_width() / 2 - 99, 195))
+            window.blit(tailSurface, (display_width / 2 - tailSurface.get_width() / 2 + 100, 150))
+            window.blit(transformImg(domino_tiles_tails[str(card.ready[1])], (100, 100)),
+                        (display_width / 2 - tailSurface.get_width() / 2 + 99, 195))
 
         window.blit(drawSurface,(display_width/2-drawSurface.get_width()/2 , 350))
+        pygame.display.update()
+
+        print "TURN " + str(game.turn)
+        index = inGame(game, player, card)
+        if len(player[index].kartu) == 0 or game.bergerak == 0:
+            return index, player[index].poin
+
+        # Mencocokan data kartu di tampilan dan data kartu di mainEngine
+        if len(player[index].kartu) < len(tampilanIndex[index]):
+            for key in tampilanIndex[index]:
+                if key not in player[index].kartu:
+                    tampilanIndex[index].remove(key)
+                    tampilanCard[index].remove(domino_tiles[key])
+                    break
+        elif len(player[index].kartu) > len(tampilanIndex[index]):
+            for key in player[index].kartu:
+                if key not in tampilanIndex[index]:
+                    tampilanIndex[index].append(key)
+                    tampilanCard[index].append(domino_tiles[key])
+                    break
+
+
+def game_result(poin, round):
+    tanda = True
+
+    titleText = pygame.font.Font("assets/Pixel Emulator.otf", 45)
+    textSurface = titleText.render("Round " + str(round), False, (0, 0, 0))
+
+    player1Text = pygame.font.Font("assets/Pixel Emulator.otf", 25)
+    player1Surface = player1Text.render("Player 1: " + str(poin[0]), False, (0, 0, 0))
+
+    player2Text = pygame.font.Font("assets/Pixel Emulator.otf", 25)
+    player2Surface = player2Text.render("Player 2: " + str(poin[1]), False, (0, 0, 0))
+
+    player3Text = pygame.font.Font("assets/Pixel Emulator.otf", 25)
+    player3Surface = player3Text.render("Player 3: " + str(poin[2]), False, (0, 0, 0))
+
+    player4Text = pygame.font.Font("assets/Pixel Emulator.otf", 25)
+    player4Surface = player4Text.render("Player 4: " + str(poin[3]), False, (0, 0, 0))
+
+    nextRound = pygame.font.Font("assets/Pixel Emulator.otf", 19)
+    nextRoundSurface = nextRound.render("Next Round ->", False, (0, 0, 0))
+    nextRoundSurface_x = (display_width / 2) - (nextRoundSurface.get_width() / 2)
+    nextRoundSurface_y = int(display_height / 1.25)
+    while tanda:
+        for event in pygame.event.get():
+            if (event.type == pygame.QUIT):
+                exitting_game()
+            elif (event.type == pygame.MOUSEBUTTONUP and event.button == 1):
+                if (mouse[0] < nextRoundSurface_x + nextRoundSurface.get_width() and mouse[0] > nextRoundSurface_x and \
+                      mouse[1] < nextRoundSurface_y + nextRoundSurface.get_height() and mouse[1] > nextRoundSurface_y):
+                    tanda = False
+
+        window.fill((255, 255, 255))
+        window.blit(textSurface, ((display_width / 2) - (textSurface.get_width() / 2), int(display_height - 500)))
+        window.blit(player1Surface, ((display_width / 2) - (player1Surface.get_width() / 2), int(display_height - 400)))
+        window.blit(player2Surface, ((display_width / 2) - (player2Surface.get_width() / 2), int(display_height - 325)))
+        window.blit(player3Surface, ((display_width / 2) - (player3Surface.get_width() / 2), int(display_height - 250)))
+        window.blit(player4Surface, ((display_width / 2) - (player4Surface.get_width() / 2), int(display_height - 175)))
+        window.blit(nextRoundSurface, (nextRoundSurface_x, int(display_height - 100)))
+
+        mouse = pygame.mouse.get_pos()
+        if (mouse[0] < nextRoundSurface_x + nextRoundSurface.get_width() and mouse[0] > nextRoundSurface_x and \
+                mouse[1] < nextRoundSurface_y + nextRoundSurface.get_height() and mouse[1] > nextRoundSurface_y):
+            nextRoundSurface = nextRound.render("Next Round ->", False, (61, 83, 91))
+        else:
+            nextRoundSurface = nextRound.render("Next Round ->", False, (0, 0, 0))
 
         pygame.display.update()
+
 
 def failed_join_room():
     failedn=False
@@ -182,7 +320,8 @@ def failed_join_room():
         else:
             okSurface = okText.render("ok",False,(0,0,0))
 
-        pygame.display.update()   
+        pygame.display.update()
+
 
 def kicked_notif():
     kickedn=False
@@ -275,7 +414,8 @@ def join_room():
             joinSurface = backText.render("Join",False,(0,0,0))
             backSurface = backText.render("back<",False,(0,0,0))
         window.blit(backSurface,(5,0))
-        pygame.display.update()           
+        pygame.display.update()
+
 
 def quick_loading(current_total_players=None,room_number=None):
     dominoPict2 = pygame.image.load("assets/domino-inline.jpg")
@@ -409,6 +549,7 @@ def game_intro():
             cusRomSurface = cusRoomtext.render("Custom Room", False, (0, 0, 0))
         pygame.display.update()
 
+
 def custom_room(room_number=None,player=None,participants=[]):
     lobi = False
     backText = pygame.font.Font("assets/Pixel Emulator.otf",25)
@@ -496,7 +637,19 @@ def custom_room(room_number=None,player=None,participants=[]):
                 elif(player=="1" and mouse[0]>258 and mouse[0]<258+startSurface.get_width() and mouse[1]>455 and mouse[1]<455+startSurface.get_height()):
                     if(not "0" in participants):
                         # print("starting game")
-                        game_start()
+                        poin = list()
+                        goal = 100
+                        round = 0
+                        for j in range(4):
+                            poin.append(0)
+                        while True:
+                            round += 1
+                            result = game_start()
+                            poin[result[0]] += result[1]
+                            game_result(poin, round)
+                            if poin[result[0]] > goal:
+                                print "The winner is Player " + str(result[0]+1)
+                                break
         window.fill((255,255,255))
         
         if(participants.count("0")==3 and player=="1"):
@@ -575,8 +728,8 @@ if __name__ == '__main__':
     message = pickle.loads(message)
     if message["sender"] == "admin" and message.get("player_name",False) != False:
         player_name = message["player_name"]  
-    mythread=threading.Thread(target=chat_event_listener,args=(address,socket))
-    mythread.start()  
+    mythread = threading.Thread(target=chat_event_listener,args=(address,socket))
+    mythread.start()
 
     game_intro()
     # game_start()
